@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Read-only Google Search Console MCP gateway for multiple AI clients",
   "engines": {
-    "node": ">=22.12.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",
