@@ -1,0 +1,44 @@
+name: Restore exact preserved Git history from PR trigger
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'bootstrap/exact-history-restore'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main staging state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Restore preserved bundle exactly
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_bundle_sha="1eea1f771683d8517f6b7ee79cb00834ca6da5eacc3df1493a91c72b8837325c"
+          expected_head="ab62109a15a34e4f9a56f8c94b3dd35bdd99b6c9"
+          combined_b64="$RUNNER_TEMP/gsc-mcp-gateway-ab62109.bundle.b64"
+          bundle="$RUNNER_TEMP/gsc-mcp-gateway-ab62109.bundle"
+
+          test "$(find bootstrap/chunks -maxdepth 1 -type f | wc -l)" = "16"
+          cat bootstrap/chunks/* > "$combined_b64"
+          base64 --decode "$combined_b64" > "$bundle"
+          echo "$expected_bundle_sha  $bundle" | sha256sum --check --strict
+          git bundle verify "$bundle"
+
+          bundle_head="$(git bundle list-heads "$bundle" refs/heads/main | awk '{print $1}')"
+          test "$bundle_head" = "$expected_head"
+
+          git fetch "$bundle" refs/heads/main:refs/remotes/preserved/main
+          restored_head="$(git rev-parse refs/remotes/preserved/main)"
+          test "$restored_head" = "$expected_head"
+          test "$(git rev-list --count refs/remotes/preserved/main)" = "5"
+
+          git push --force origin refs/remotes/preserved/main:refs/heads/main
