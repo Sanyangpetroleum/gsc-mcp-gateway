@@ -20,7 +20,7 @@ Grant the service account **Full user** access to only the required Search Conso
 - Authorization codes expire after two minutes and can be consumed once.
 - Access tokens are signed with HS256, audience-bound to `/mcp`, and expire after one hour.
 - Refresh tokens expire after 30 days and rotate on every use.
-- Dynamic client registrations expire after one year.
+- Dynamic client registrations remain valid while the connector is in use, as expected by current MCP clients; clearing the OAuth store invalidates them.
 - Registration, authorization, and token endpoints have Redis-backed rate limits.
 - Redirect URIs must use HTTPS, except loopback addresses for local native clients.
 

@@ -25,7 +25,6 @@ export async function POST(request: Request) {
         tokenEndpointAuthMethod: parsed.tokenEndpointAuthMethod,
         createdAt: now,
       },
-      365 * 24 * 60 * 60,
     );
     return jsonResponse(
       {

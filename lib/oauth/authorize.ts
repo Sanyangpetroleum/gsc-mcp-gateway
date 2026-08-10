@@ -18,6 +18,7 @@ export interface ValidatedAuthorizationRequest {
   state: string;
   codeChallenge: string;
   scopes: string[];
+  resource: string;
 }
 
 export async function validateAuthorizationQuery(
@@ -38,13 +39,13 @@ export async function validateAuthorizationQuery(
   }
   const resource = params.get("resource");
   const expectedResource = `${publicBaseUrl(request)}/mcp`;
-  if (resource && resource !== expectedResource) throw new Error("Invalid OAuth resource");
+  if (resource !== expectedResource) throw new Error("The exact MCP resource parameter is required");
   const requestedScopes = (params.get("scope") ?? MCP_SCOPE).split(/\s+/).filter(Boolean);
   const allowed = new Set([MCP_SCOPE, OFFLINE_SCOPE]);
   if (!requestedScopes.includes(MCP_SCOPE) || requestedScopes.some((scope) => !allowed.has(scope))) {
     throw new Error("Unsupported OAuth scope");
   }
-  return { clientId, redirectUri, state, codeChallenge, scopes: requestedScopes };
+  return { clientId, redirectUri, state, codeChallenge, scopes: requestedScopes, resource };
 }
 
 export async function createAuthorizationFormToken(
@@ -68,12 +69,14 @@ export async function approveAuthorization(
   const state = String(payload.state ?? "");
   const codeChallenge = String(payload.codeChallenge ?? "");
   const scopes = Array.isArray(payload.scopes) ? payload.scopes.map(String) : [];
+  const resource = String(payload.resource ?? "");
+  if (resource !== `${publicBaseUrl(request)}/mcp`) throw new Error("Invalid OAuth resource");
   const client = await oauthStore().getClient(clientId);
   if (!client || !client.redirectUris.includes(redirectUri)) throw new Error("OAuth client is no longer valid");
   const code = randomToken();
   await oauthStore().putAuthorizationCode(
     sha256(code),
-    { clientId, redirectUri, codeChallenge, scopes, subject: "gsc-gateway-owner" },
+    { clientId, redirectUri, codeChallenge, scopes, subject: "gsc-gateway-owner", resource },
     120,
   );
   const callback = new URL(redirectUri);

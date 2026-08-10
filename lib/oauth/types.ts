@@ -15,16 +15,18 @@ export interface AuthorizationCodeRecord {
   codeChallenge: string;
   scopes: string[];
   subject: string;
+  resource: string;
 }
 
 export interface RefreshTokenRecord {
   clientId: string;
   scopes: string[];
   subject: string;
+  resource: string;
 }
 
 export interface OAuthStore {
-  putClient(client: OAuthClientRecord, ttlSeconds: number): Promise<void>;
+  putClient(client: OAuthClientRecord, ttlSeconds?: number): Promise<void>;
   getClient(clientId: string): Promise<OAuthClientRecord | null>;
   putAuthorizationCode(codeHash: string, record: AuthorizationCodeRecord, ttlSeconds: number): Promise<void>;
   consumeAuthorizationCode(codeHash: string): Promise<AuthorizationCodeRecord | null>;

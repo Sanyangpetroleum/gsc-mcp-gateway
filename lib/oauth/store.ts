@@ -15,8 +15,11 @@ export class MemoryOAuthStore implements OAuthStore {
   private readonly values = new Map<string, MemoryEntry<unknown>>();
   private readonly counters = new Map<string, { count: number; expiresAt: number }>();
 
-  private put<T>(key: string, value: T, ttlSeconds: number) {
-    this.values.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 });
+  private put<T>(key: string, value: T, ttlSeconds?: number) {
+    this.values.set(key, {
+      value,
+      expiresAt: ttlSeconds === undefined ? Number.POSITIVE_INFINITY : Date.now() + ttlSeconds * 1000,
+    });
   }
 
   private get<T>(key: string, consume = false): T | null {
@@ -29,7 +32,7 @@ export class MemoryOAuthStore implements OAuthStore {
     return entry.value as T;
   }
 
-  async putClient(client: OAuthClientRecord, ttlSeconds: number) {
+  async putClient(client: OAuthClientRecord, ttlSeconds?: number) {
     this.put(`client:${client.clientId}`, client, ttlSeconds);
   }
   async getClient(clientId: string) {
@@ -64,7 +67,11 @@ export class MemoryOAuthStore implements OAuthStore {
 export class RedisOAuthStore implements OAuthStore {
   constructor(private readonly redis: Redis) {}
 
-  private async put<T>(key: string, value: T, ttlSeconds: number) {
+  private async put<T>(key: string, value: T, ttlSeconds?: number) {
+    if (ttlSeconds === undefined) {
+      await this.redis.set(`gsc-mcp:${key}`, value);
+      return;
+    }
     await this.redis.set(`gsc-mcp:${key}`, value, { ex: ttlSeconds });
   }
 
@@ -83,7 +90,7 @@ export class RedisOAuthStore implements OAuthStore {
     return JSON.parse(result) as T;
   }
 
-  async putClient(client: OAuthClientRecord, ttlSeconds: number) {
+  async putClient(client: OAuthClientRecord, ttlSeconds?: number) {
     await this.put(`client:${client.clientId}`, client, ttlSeconds);
   }
   async getClient(clientId: string) {

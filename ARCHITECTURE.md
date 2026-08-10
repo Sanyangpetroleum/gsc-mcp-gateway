@@ -12,7 +12,7 @@ flowchart LR
 - **Runtime:** Next.js 16 on Node.js, intended for Vercel serverless deployment.
 - **MCP:** `mcp-handler` 2.1 with Streamable HTTP at `/mcp` and stateless compatibility for older MCP clients.
 - **Client authentication:** OAuth authorization code flow, PKCE S256, dynamic client registration, one-time authorization codes, rotating refresh tokens, and one-hour signed access tokens.
-- **OAuth state:** Upstash Redis in remote environments. In-memory state is restricted to tests or explicit local development.
+- **OAuth state:** a durable atomic store is required in remote environments; the initial adapter is Upstash Redis. In-memory state is restricted to tests or explicit local development. See `AUTH_STORAGE_DECISION.md`.
 - **Google authentication:** one service account, stored only as a deployment secret, exchanging credentials for Google access tokens with the exact `webmasters.readonly` scope.
 - **Google API access:** direct official REST endpoints for Sites, Search Analytics, URL Inspection, and Sitemaps.
 
