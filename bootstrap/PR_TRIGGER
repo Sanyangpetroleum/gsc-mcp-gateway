@@ -1,2 +1,3 @@
 trigger exact preserved history restore
 retry integrity diagnostics
+retry corrected chunk assembly
