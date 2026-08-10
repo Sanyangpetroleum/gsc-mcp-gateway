@@ -30,7 +30,7 @@ This is a small single-operator authorization server. It does not implement ente
 
 Required secrets belong in deployment secret storage and never in source control:
 
-- `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64`
+- `GOOGLE_SERVICE_ACCOUNT_JSON` or its base64 alternative
 - `MCP_TOKEN_SIGNING_SECRET`
 - `MCP_ADMIN_PASSWORD`
 - `UPSTASH_REDIS_REST_TOKEN`

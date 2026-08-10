@@ -7,7 +7,7 @@ These are the only administrator steps needed after the code is deployed.
 1. In a dedicated Google Cloud project, enable **Google Search Console API**.
 2. Create a dedicated service account with no Google Cloud project role beyond what account creation requires. Create one JSON key.
 3. In each intended Search Console property, open **Settings → Users and permissions → Add user**. Add the service account's `client_email` as **Full user**, not owner.
-4. Base64-encode the JSON file as one line and store it as `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` in the deployment secret store. Delete the local downloaded copy after successful validation.
+4. Paste the complete JSON file into the encrypted `GOOGLE_SERVICE_ACCOUNT_JSON` deployment variable. `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` is supported only as an alternative for systems that cannot store multiline JSON. Delete the local downloaded copy after successful validation.
 
 The service account does not gain Search Console data from an IAM role; the explicit Search Console property grant is the important permission.
 
@@ -22,7 +22,8 @@ Provision one Upstash Redis database in the same Vercel account/region. Store th
 | `MCP_ADMIN_PASSWORD` | Strong unique operator authorization password |
 | `UPSTASH_REDIS_REST_URL` | Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST secret |
-| `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` | Base64 of the complete service-account JSON |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | Complete service-account JSON, stored encrypted |
+| `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` | Optional base64 alternative; do not set both |
 
 Do not set `ALLOW_IN_MEMORY_OAUTH` on a remote deployment.
 

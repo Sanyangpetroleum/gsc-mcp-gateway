@@ -162,14 +162,17 @@ export function createGscClientFromEnv(): GscClient {
   if (sharedClient) return sharedClient;
   let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(
-      Buffer.from(requiredEnv("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64"), "base64").toString("utf8"),
-    ) as Record<string, unknown>;
+    const rawJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim();
+    const credentialJson = rawJson ?? Buffer.from(
+      requiredEnv("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64"),
+      "base64",
+    ).toString("utf8");
+    parsed = JSON.parse(credentialJson) as Record<string, unknown>;
   } catch {
-    throw new Error("Required server configuration is invalid: GOOGLE_SERVICE_ACCOUNT_JSON_BASE64");
+    throw new Error("Required server configuration is invalid: Google service account JSON");
   }
   if (parsed.type !== "service_account" || !parsed.client_email || !parsed.private_key) {
-    throw new Error("Required server configuration is invalid: GOOGLE_SERVICE_ACCOUNT_JSON_BASE64");
+    throw new Error("Required server configuration is invalid: Google service account JSON");
   }
   const auth = new GoogleAuth({ credentials: parsed, scopes: [GSC_SCOPE] });
   const tokenProvider = async () => {
