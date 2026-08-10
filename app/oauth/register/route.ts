@@ -1,4 +1,4 @@
-import { jsonResponse, oauthError } from "@/lib/http";
+import { jsonResponse, oauthError, safeJson } from "@/lib/http";
 import { parseRegistration } from "@/lib/oauth/client";
 import { randomToken, sha256 } from "@/lib/oauth/crypto";
 import { oauthStore } from "@/lib/oauth/store";
@@ -11,10 +11,7 @@ export async function POST(request: Request) {
     if (!(await allowOAuthRequest(request, "register", 20, 60 * 60))) {
       return oauthError("temporarily_unavailable", "Registration rate limit exceeded", 429);
     }
-    if (Number(request.headers.get("content-length") ?? 0) > 20_000) {
-      return oauthError("invalid_client_metadata", "Registration payload is too large");
-    }
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await safeJson(request);
     const parsed = parseRegistration(body);
     const clientId = randomToken(24);
     const clientSecret = parsed.tokenEndpointAuthMethod === "none" ? undefined : randomToken();
