@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a reproducible problem with the gateway
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do not include credentials, tokens, private keys, cookies, private Search Console data, or other secrets.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and the expected behavior.
+      placeholder: Observed… Expected…
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Give the smallest reproducible sequence. Redact property names, URLs, query text, and identifiers when they are private.
+      placeholder: |
+        1. Deploy/configure…
+        2. Connect client…
+        3. Call tool…
+        4. Observe…
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - MCP / protocol
+        - OAuth / authentication
+        - Google Search Console API
+        - Deployment / configuration
+        - ChatGPT client compatibility
+        - Codex client compatibility
+        - Claude client compatibility
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0 or commit SHA
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Safe diagnostic evidence
+      description: Include only sanitized logs, status codes, and stack traces that contain no secrets or private Search Console data.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed credentials, tokens, private keys, cookies, private URLs/properties, and personal data.
+          required: true
+        - label: I searched existing issues for the same problem.
+          required: true
