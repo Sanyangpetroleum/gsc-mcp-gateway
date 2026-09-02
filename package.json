@@ -4,6 +4,18 @@
   "private": true,
   "type": "module",
   "description": "Read-only Google Search Console MCP gateway for multiple AI clients",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sanyangpetroleum/gsc-mcp-gateway.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "google-search-console",
+    "search-console",
+    "seo"
+  ],
   "engines": {
     "node": "22.x"
   },
