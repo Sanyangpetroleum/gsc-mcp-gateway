@@ -1,56 +1,78 @@
 # Client connections
 
-Use the same endpoint for every client:
+Use the same remote MCP endpoint for every compatible client:
 
 ```text
 https://YOUR_HOST/mcp
 ```
 
-The first connection opens the gateway authorization page. Enter the gateway operator password. Do not paste Google credentials into any AI client.
+The gateway uses OAuth. The first authenticated connection opens the gateway authorization flow. Enter the gateway operator password there; do not paste Google service-account credentials into ChatGPT, Codex, Claude, or any other AI client.
 
 ## ChatGPT
 
-1. Open **Settings → Security and login → Developer mode** and enable it.
-2. Open **ChatGPT Plugins**, select **+**, and add the public HTTPS `/mcp` endpoint.
-3. Complete the OAuth authorization page with the gateway operator password.
-4. In a new conversation, select the connector and ask: “List my Search Console properties.”
+ChatGPT support depends on plan and workspace configuration. As of September 2026, Pro users can connect read/fetch MCP apps in developer mode, while full MCP including write/modify actions is available to Business and Enterprise/Edu workspaces. This gateway is intentionally read-only.
 
-ChatGPT's current developer mode supports remote Streamable HTTP and SSE MCP servers. This service uses Streamable HTTP.
+For current ChatGPT web setup:
 
-## Claude
+1. Enable Developer mode under **Settings → Apps → Advanced Settings** when available for your plan/workspace.
+2. Create or add a custom app and provide the public HTTPS MCP endpoint: `https://YOUR_HOST/mcp`.
+3. Choose OAuth when prompted, complete the gateway authorization flow, and allow ChatGPT to scan the available tools.
+4. Start a new chat, select or mention the app, and ask: “List my Search Console properties.”
 
-For Claude.ai, open **Customize → Connectors**, add a custom connector using the `/mcp` URL, and complete OAuth. Workspace policy may require an Owner to add or enable the connector.
+OpenAI changes the ChatGPT app UI over time. If the labels above differ, follow the current OpenAI Developer mode / MCP app documentation rather than older “Plugins” instructions.
 
-For Claude Code:
+## ChatGPT desktop / Codex desktop host
+
+Current Codex-hosted clients support Streamable HTTP MCP servers and OAuth. In the ChatGPT desktop app where MCP server settings are available:
+
+1. Open **Settings → MCP servers**.
+2. Select **Add server**.
+3. Choose **Streamable HTTP** and enter `https://YOUR_HOST/mcp`.
+4. Save/restart if requested, then authenticate the server when prompted.
+
+## Codex CLI
+
+The most direct current setup is:
+
+```bash
+codex mcp add gsc-gateway --url https://YOUR_HOST/mcp
+codex mcp login gsc-gateway
+codex mcp list
+```
+
+Codex supports OAuth discovery and Dynamic Client Registration for compatible remote MCP servers. In the Codex TUI, use `/mcp` to inspect connection state.
+
+Equivalent `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.gsc-gateway]
+url = "https://YOUR_HOST/mcp"
+enabled = true
+```
+
+Do not add a Google credential, Google access token, or gateway operator password to `config.toml`.
+
+## Claude Code
+
+Claude Code recommends remote HTTP for cloud-hosted MCP servers:
 
 ```bash
 claude mcp add --transport http gsc-gateway https://YOUR_HOST/mcp
-claude mcp login gsc-gateway
 ```
 
-Use `/mcp` inside Claude Code to inspect connection status.
+Then use `/mcp` inside Claude Code and complete OAuth in the browser when authentication is requested. Claude Code can discover OAuth metadata from the gateway after a `401`/`403` challenge.
 
-## Codex
+## Claude.ai and other MCP clients
 
-Add the remote server to `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.gsc_gateway]
-url = "https://YOUR_HOST/mcp"
-auth = "oauth"
-required = true
-default_tools_approval_mode = "writes"
-```
-
-Then run `codex mcp login gsc_gateway`. Because this gateway exposes only read-only tools, the `writes` approval mode does not introduce an automatic write path.
-
-## Hermes and future agents
-
-Configure the same HTTPS `/mcp` URL with OAuth authorization-code/PKCE support. If Hermes launches Claude Code or Codex as its client runtime, configure the gateway in that underlying client. No Hermes-specific backend or Google credential is required.
+For clients that support remote Streamable HTTP plus OAuth authorization-code/PKCE, configure the same HTTPS `/mcp` endpoint. No client needs the Google service-account credential.
 
 ## Acceptance prompts
+
+After connecting, use these prompts to verify the read-only path:
 
 1. “List my Search Console properties.”
 2. “Show performance for the last 28 complete days.”
 3. “Compare the last 28 complete days with the preceding 28 and show pages with the largest click losses.”
 4. “Inspect this URL using the exact matching Search Console property: …”
+
+A successful client connection proves MCP/OAuth connectivity. It does not by itself prove that the Google service account has access to every intended Search Console property; property grants remain configured in Google Search Console.

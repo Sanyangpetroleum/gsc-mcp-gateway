@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a focused improvement that preserves the read-only project boundary
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        GSC MCP Gateway is intentionally narrow. Prefer improvements to secure read-only Search Console access, interoperability, deployment, observability, documentation, or maintainability over unrelated SEO-platform features.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What concrete user or maintainer problem exists today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Smallest useful change
+      description: Describe the minimum implementation that would solve the problem.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Project boundary
+      options:
+        - label: This request can preserve Google Search Console read-only access.
+          required: true
+        - label: This request does not require publishing or logging credentials/private Search Console data.
+          required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional. Mention a simpler workaround or existing approach if one exists.
