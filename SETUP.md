@@ -45,3 +45,11 @@ Verify `/health` returns `200`, anonymous `/mcp` initialization returns `401`, t
 ## Quotas relevant to operation
 
 Google currently documents Search Analytics per-site and per-user limits of 1,200 queries/minute, plus project limits of 40,000 queries/minute and 30,000,000 queries/day. URL Inspection is much tighter: 600 queries/minute and 2,000/day per property. The gateway retries quota/transient failures at most twice with bounded backoff and returns a coarse error after that; callers should not spin or retry aggressively.
+
+## Optional Sitemap write activation (not required for SEO analytics)
+
+This requires **separate owner approval** after the read-only gateway is healthy; do not re-use or upgrade its read credentials. Provision a second Google Cloud service account with Search Console API access, explicitly grant it the intended Search Console property's Full user permission (not owner), and store its JSON in the encrypted server variable `GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON`.
+
+Set `GSC_SITEMAP_WRITE_PROPERTIES` to the exact approved GSC property IDs, `MCP_WRITE_ADMIN_PASSWORD` to a strong password different from `MCP_ADMIN_PASSWORD`, and `GSC_SITEMAP_WRITE_ENABLED=true` only after separate approval. The service will register the new `gsc_submit_sitemap` tool on restart. Existing `gsc.read` clients remain read-only; a write-capable client must reconnect and request `gsc.read gsc.sitemaps.write`, authorize with the **separate** write password, and explicitly invoke a confirmed XML Sitemap submission. Do not paste credentials into chats.
+
+A submitted Sitemap is a crawl discovery hint, not guaranteed indexing or a way to submit arbitrary article URLs. Do not enable or deploy on a code-only request without the separate production/configuration gate.

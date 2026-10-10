@@ -76,3 +76,11 @@ After connecting, use these prompts to verify the read-only path:
 4. “Inspect this URL using the exact matching Search Console property: …”
 
 A successful client connection proves MCP/OAuth connectivity. It does not by itself prove that the Google service account has access to every intended Search Console property; property grants remain configured in Google Search Console.
+
+## SEO Intelligence tools (same authenticated MCP endpoint)
+
+After a reviewed deployment, request these additional read tools with existing `gsc.read` credentials: `gsc_keyword_opportunities`, `gsc_search_trend_signals`, `gsc_site_opportunities`, `gsc_page_editorial_brief` and `gsc_seo_priority_brief`. Supply exact accessible GSC property and completed periods. Per-company Google Search Console grants and query permissions are enforced by the existing gateway.
+
+The optional write tool `gsc_submit_sitemap` is **not advertised by default**. It appears only after independent write service account/allowlist/permission setup and requires a *new explicit OAuth authorization* requesting `gsc.read gsc.sitemaps.write`. Existing read-only clients or their refresh tokens are insufficient.
+
+Google Trends public market data and competitor SERP intelligence are **not** GSC measures, and the limited-alpha official Trends API is not assumed connected. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md).

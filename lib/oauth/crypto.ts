@@ -1,6 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { jwtVerify, SignJWT } from "jose";
 import { publicBaseUrl, requiredEnv } from "@/lib/config";
+export { MCP_SITEMAP_WRITE_SCOPE } from "@/lib/gsc/sitemap-write";
 
 export const MCP_SCOPE = "gsc.read";
 export const OFFLINE_SCOPE = "offline_access";

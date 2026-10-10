@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — SEO Intelligence MCP V1 (source-only; not deployed)
+
+- Five new read-only, data-backed SEO tools for search-query opportunities, property-specific impression trends, existing-page priority and single-URL editorial briefs.
+- An optional disabled-by-default Sitemap submission operation inside the same MCP, with separate Google service account, password, client OAuth write scope, exact property allowlist and confirmation.
+- No Google Trends alpha API bypass, competitor ranking fabrication, ordinary article Indexing API use, credential distribution, production activation or auto-publishing.
+- Added mocked tests and [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md) usage/setup guide.
+
+
 All notable changes to this project will be documented here.
 
 The format is based on Keep a Changelog and the project uses semantic versioning for public releases.
