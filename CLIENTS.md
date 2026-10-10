@@ -79,7 +79,7 @@ A successful client connection proves MCP/OAuth connectivity. It does not by its
 
 ## SEO Intelligence tools (same authenticated MCP endpoint)
 
-After a reviewed deployment, request these additional read tools with existing `gsc.read` credentials: `gsc_keyword_opportunities`, `gsc_search_trend_signals`, `gsc_site_opportunities`, `gsc_page_editorial_brief`. Supply exact accessible GSC property and completed periods. Per-company Google Search Console grants and query permissions are enforced by the existing gateway.
+After a reviewed deployment, request these additional read tools with existing `gsc.read` credentials: `gsc_keyword_opportunities`, `gsc_search_trend_signals`, `gsc_site_opportunities`, `gsc_page_editorial_brief` and `gsc_seo_priority_brief`. Supply exact accessible GSC property and completed periods. Per-company Google Search Console grants and query permissions are enforced by the existing gateway.
 
 The optional write tool `gsc_submit_sitemap` is **not advertised by default**. It appears only after independent write service account/allowlist/permission setup and requires a *new explicit OAuth authorization* requesting `gsc.read gsc.sitemaps.write`. Existing read-only clients or their refresh tokens are insufficient.
 
