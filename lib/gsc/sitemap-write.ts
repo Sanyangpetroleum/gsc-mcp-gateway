@@ -7,7 +7,7 @@ const API_BASE = "https://www.googleapis.com/webmasters/v3/sites/";
 
 export const MCP_SITEMAP_WRITE_SCOPE = "gsc.sitemaps.write";
 
-export function sitemapWriteConfigured(env: NodeJS.ProcessEnv = process.env) {
+export function sitemapWriteConfigured(env: Record<string, string | undefined> = process.env) {
   return env.GSC_SITEMAP_WRITE_ENABLED === "true" &&
     Boolean(env.GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON?.trim()) &&
     Boolean(env.GSC_SITEMAP_WRITE_PROPERTIES?.trim()) &&
@@ -15,7 +15,7 @@ export function sitemapWriteConfigured(env: NodeJS.ProcessEnv = process.env) {
     env.MCP_WRITE_ADMIN_PASSWORD !== env.MCP_ADMIN_PASSWORD;
 }
 
-export function allowedSitemapProperties(env: NodeJS.ProcessEnv = process.env) {
+export function allowedSitemapProperties(env: Record<string, string | undefined> = process.env) {
   const values = (env.GSC_SITEMAP_WRITE_PROPERTIES ?? "")
     .split(",").map((value) => value.trim()).filter(Boolean);
   if (values.length < 1 || values.length > 20 || new Set(values).size !== values.length) {
