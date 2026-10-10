@@ -20,6 +20,7 @@ export async function GET(request: Request) {
       formToken,
       clientName: client?.clientName ?? "MCP client",
       scopes: validated.scopes,
+      registeredRedirectUri: validated.redirectUri,
     });
   } catch (error) {
     return new Response(error instanceof Error ? error.message : "Invalid authorization request", {
@@ -44,10 +45,15 @@ export async function POST(request: Request) {
   } catch (error) {
     let clientName = "MCP client";
     let scopes: string[] = [];
+    let registeredRedirectUri: string | undefined;
     try {
       const payload = await verifyAuthorizationRequest(formToken, request);
       const client = await oauthStore().getClient(String(payload.clientId ?? ""));
       clientName = client?.clientName ?? clientName;
+      const requestedRedirectUri = String(payload.redirectUri ?? "");
+      if (client?.redirectUris.includes(requestedRedirectUri)) {
+        registeredRedirectUri = requestedRedirectUri;
+      }
       scopes = Array.isArray(payload.scopes) ? payload.scopes.map(String) : [];
     } catch {
       return new Response("Invalid or expired authorization request", { status: 400 });
@@ -57,6 +63,7 @@ export async function POST(request: Request) {
       clientName,
       scopes,
       error: error instanceof Error ? error.message : "Access denied",
+      registeredRedirectUri,
     });
   }
 }

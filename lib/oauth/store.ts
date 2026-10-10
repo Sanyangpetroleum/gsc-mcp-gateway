@@ -87,8 +87,20 @@ export class RedisOAuthStore implements OAuthStore {
       [namespaced],
       [],
     );
-    if (typeof result !== "string") return null;
-    return JSON.parse(result) as T;
+    // Upstash may automatically deserialize the JSON response to EVAL.
+    // Accept both the original JSON string and the SDK's decoded object:
+    // otherwise a valid, atomically consumed authorization code is lost.
+    if (result == null) return null;
+    let value: unknown = result;
+    if (typeof value === "string") {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    return value as T;
   }
 
   async putClient(client: OAuthClientRecord, ttlSeconds?: number) {
