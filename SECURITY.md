@@ -2,7 +2,7 @@
 
 ## Default read-only boundary and separately gated Sitemap writes
 
-The default Google scope is `https://www.googleapis.com/auth/webmasters.readonly`. The original seven Search Console tools and four added SEO intelligence tools remain **read-only**. They cannot add/remove properties or users, submit/delete sitemaps, request indexing, edit websites, create PRs or deploy source code.
+The default Google scope is `https://www.googleapis.com/auth/webmasters.readonly`. The original seven Search Console tools and five added SEO intelligence tools remain **read-only**. They cannot add/remove properties or users, submit/delete sitemaps, request indexing, edit websites, create PRs or deploy source code.
 
 **Optional one-operation write capability (disabled by default):** `gsc_submit_sitemap` may submit only an XML Sitemap for an exact operator-allowlisted Search Console property. Activation requires `GSC_SITEMAP_WRITE_ENABLED=true`, a distinct service-account JSON credential with Google's `https://www.googleapis.com/auth/webmasters` scope, a nonempty exact `GSC_SITEMAP_WRITE_PROPERTIES` list, and a distinct `MCP_WRITE_ADMIN_PASSWORD`. The writer identity must differ from the read-only Google identity. Both must have access to the property.
 
