@@ -36,12 +36,12 @@ Please avoid unrelated refactors in the same pull request.
 
 The following principles are part of the project contract:
 
-- Google access remains read-only.
+- Google access remains read-only by default; the separately authorized Sitemap-only writer is optional, disabled by default and MUST retain its independent property, OAuth-scope, consent and Google-credential boundaries.
 - Secrets never enter source control, logs, tool output, or browser-visible variables.
 - Anonymous MCP requests remain unauthorized.
 - OAuth authorization codes and tokens remain bounded and short-lived.
 - Google error bodies and credentials are not exposed to clients.
-- New write-capable Search Console or website mutation tools are out of scope unless the project direction changes explicitly.
+- Further Google or website write capabilities are out of scope. Do not extend the existing optional Sitemap-only write tool to general indexing, properties, users or content without a separately authorized security review.
 
 Read `SECURITY.md` before changing authentication, OAuth, token storage, Google scopes, logging, or deployment configuration.
 
