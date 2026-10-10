@@ -240,3 +240,49 @@ export function pageEditorialBrief(
     ],
   };
 }
+
+export function combinedSeoPriorityBrief(
+  keywords: ReturnType<typeof keywordOpportunities>,
+  trends: ReturnType<typeof searchTrendSignals>,
+  pages: ReturnType<typeof sitePageOpportunities>,
+) {
+  if (keywords.property !== trends.property || trends.property !== pages.property) {
+    throw new Error("Cannot combine SEO evidence from different Search Console properties");
+  }
+  const risingBuyerQuery = [...trends.rising, ...trends.newlyObserved]
+    .find((signal) => signal.intent === "procurement" || signal.intent === "commercial_research");
+  return {
+    property: keywords.property,
+    periodA: trends.periodA,
+    periodB: trends.periodB,
+    executivePriority: "Improve existing proven pages and their qualified enquiry paths before creating new overlapping posts.",
+    existingPagesToReview: pages.opportunities.slice(0, 3),
+    commercialQueriesToStrengthen: keywords.opportunities
+      .filter((entry) => entry.intent !== "informational_or_unknown").slice(0, 5),
+    risingSearchInterestsOnThisProperty: trends.rising.slice(0, 3),
+    decliningSearchInterestsOnThisProperty: trends.declining.slice(0, 3),
+    distinctArticleHypothesisToValidate: risingBuyerQuery
+      ? {
+          observedQuery: risingBuyerQuery.query,
+          currentImpressions: risingBuyerQuery.currentImpressions,
+          nextStep: "Check all existing canonical pages and approved commercial/technical evidence for this query first. Only propose a distinct new post if search intent is underserved.",
+        }
+      : null,
+    technicalIndexingNextStep: "Use gsc_page_editorial_brief on the highest-value affected page to inspect Google's indexed canonical and coverage state before any technical diagnosis.",
+    operationalBoundaries: {
+      automaticPublishing: false,
+      googleTrendsApiUsed: false,
+      competitorRanksMeasured: false,
+      scheduledMonitoringConfigured: false,
+      inquiryRevenueMeasured: false,
+    },
+    coverage: {
+      keywordRowsExamined: keywords.rowsExamined,
+      trendRowsExamined: trends.rowsExamined,
+      pageRowsExamined: pages.rowsExamined,
+      keywordSampleTruncated: keywords.sampledTopRowsMayBeTruncated,
+      trendSampleTruncated: trends.sampledTopRowsMayBeTruncated,
+    },
+    limitations: DATA_LIMITATIONS,
+  };
+}
