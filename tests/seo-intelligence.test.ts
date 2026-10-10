@@ -3,6 +3,7 @@ import type { SearchAnalyticsResult } from "@/lib/gsc/types";
 import {
   buyerIntent, keywordOpportunities, searchTrendSignals,
   sitePageOpportunities, pageEditorialBrief, validateComparableWindows,
+  combinedSeoPriorityBrief,
 } from "@/lib/seo/analysis";
 
 type Entry = SearchAnalyticsResult["rows"][number];
@@ -89,4 +90,34 @@ describe("SEO intelligence model", () => {
     expect(brief.topQueries[0].intent).toBe("procurement");
     expect(brief.limitations.join(" ")).toContain("does not fetch live HTML");
   });
+
+  it("combines strategy evidence from one GSC property and refuses cross-company aggregation", () => {
+    const oldQueries = result(a.startDate, a.endDate, ["query"], [
+      row("bulk fuel supplier", "", 5, 30, 9),
+    ]);
+    const nowQueries = result(b.startDate, b.endDate, ["query"], [
+      row("bulk fuel supplier", "", 15, 110, 6),
+    ]);
+    const keywordPairs = result(b.startDate, b.endDate, ["query", "page"], [
+      row("bulk fuel supplier", "https://example.com/products/fuel", 15, 110, 6),
+    ]);
+    const oldPages = result(a.startDate, a.endDate, ["page"], [
+      row("", "https://example.com/products/fuel", 30, 240, 6),
+    ]);
+    const nowPages = result(b.startDate, b.endDate, ["page"], [
+      row("", "https://example.com/products/fuel", 15, 160, 8),
+    ]);
+    const keywords = keywordOpportunities(keywordPairs);
+    const trend = searchTrendSignals(oldQueries, nowQueries);
+    const pages = sitePageOpportunities(oldPages, nowPages);
+    const brief = combinedSeoPriorityBrief(keywords, trend, pages);
+    expect(brief.existingPagesToReview).toHaveLength(1);
+    expect(brief.commercialQueriesToStrengthen[0].query).toBe("bulk fuel supplier");
+    expect(brief.operationalBoundaries.automaticPublishing).toBe(false);
+    expect(brief.distinctArticleHypothesisToValidate?.nextStep).toContain("existing canonical");
+    expect(() => combinedSeoPriorityBrief(
+      { ...keywords, property: "sc-domain:other.com" }, trend, pages,
+    )).toThrow("different Search Console properties");
+  });
+
 });
