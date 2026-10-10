@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { registerSeoTools } from "@/lib/mcp/seo-tools";
+import { registerSitemapTools } from "@/lib/mcp/sitemap-tools";
 import { createGscClientFromEnv } from "@/lib/gsc/client";
 import { compareSearchPeriods } from "@/lib/gsc/comparison";
 import { safeToolError } from "@/lib/gsc/errors";
@@ -270,4 +271,5 @@ export function registerGscTools(server: McpServer) {
     }),
   );
   registerSeoTools(server);
+  registerSitemapTools(server);
 }
