@@ -13,7 +13,7 @@ flowchart LR
 - **MCP:** `mcp-handler` 2.1 with Streamable HTTP at `/mcp` and stateless compatibility for older MCP clients.
 - **Client authentication:** OAuth authorization code flow, PKCE S256, dynamic client registration, one-time authorization codes, rotating refresh tokens, and one-hour signed access tokens.
 - **OAuth state:** a durable atomic store is required in remote environments; the initial adapter is Upstash Redis. In-memory state is restricted to tests or explicit local development. See `AUTH_STORAGE_DECISION.md`.
-- **Google authentication:** one service account, stored only as a deployment secret, exchanging credentials for Google access tokens with the exact `webmasters.readonly` scope.
+- **Google authentication:** preferred keyless Vercel OIDC → GCP Workload Identity Federation → scoped service-account impersonation with `webmasters.readonly`. Pre-existing JSON credentials remain a legacy fallback; creating new private keys is unnecessary and may be prohibited by organizational policy.
 - **Google API access:** direct official REST endpoints for Sites, Search Analytics, URL Inspection, and Sitemaps.
 
 The client OAuth token and Google access token are unrelated credentials at separate trust boundaries. AI clients never receive the service-account key or a Google token.
