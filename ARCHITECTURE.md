@@ -28,7 +28,7 @@ The gateway caps a normal analytics call at 5,000 rows and a comparison at 1,000
 
 ## SEO Intelligence V1 — extension, not a second service
 
-The original gateway and seven Google read-only primitives are retained. Four deterministic analytical tools in `lib/mcp/seo-tools.ts` reuse Search Analytics and URL Inspection. Each result carries period, exact property, top-row/truncation cautions and editorial next steps. No extra tokens, paid APIs, background workers, client Google credentials, Google Trends API or external data scraping.
+The original gateway and seven Google read-only primitives are retained. Five deterministic analytical tools in `lib/mcp/seo-tools.ts` reuse Search Analytics and URL Inspection. Each result carries period, exact property, top-row/truncation cautions and editorial next steps. No extra tokens, paid APIs, background workers, client Google credentials, Google Trends API or external data scraping.
 
 `lib/gsc/sitemap-write.ts` is a separately permissioned optional operation inside the same MCP handler. The default tools and `GOOGLE_SERVICE_ACCOUNT_JSON` remain strictly read-only; the writer has a distinct Google account with `webmasters` scope, explicit `gsc.sitemaps.write` client OAuth scope, a separate write-password consent flow, exact property allowlist and disable-on-missing-config behavior. It is not a general Google write or URL indexing endpoint.
 
