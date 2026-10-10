@@ -5,7 +5,7 @@ import { safeToolError } from "@/lib/gsc/errors";
 import { validateInspectionUrl } from "@/lib/gsc/validation";
 import {
   keywordOpportunities, searchTrendSignals, sitePageOpportunities,
-  pageEditorialBrief, validateComparableWindows,
+  pageEditorialBrief, validateComparableWindows, combinedSeoPriorityBrief,
 } from "@/lib/seo/analysis";
 
 const property = z.string().min(1).max(2048);
@@ -184,4 +184,38 @@ export function registerSeoTools(server: McpServer) {
       );
     }),
   );
+  server.registerTool(
+    "gsc_seo_priority_brief",
+    {
+      title: "Consolidated SEO priority brief for an existing website",
+      description: "One-call evidence-backed briefing combining site-specific keywords, emerging query impressions, and declining existing pages from five bounded GSC queries. Prioritizes updates over mass new posts. Never implies external Google Trends, competitor data, publishing or continuous monitoring.",
+      inputSchema: z.object({
+        property, periodA: period, periodB: period, searchType, country,
+        rowLimit: z.number().int().min(50).max(1500).default(500),
+      }),
+      annotations,
+    },
+    async (input) => respond("gsc_seo_priority_brief", async () => {
+      validateComparableWindows(input.periodA, input.periodB);
+      const client = createGscClientFromEnv();
+      const common = {
+        property: input.property, searchType: input.searchType,
+        filters: filtersFor(input.country), dataState: "final" as const,
+        rowLimit: input.rowLimit,
+      };
+      const [priorQueries, recentQueries, priorPages, recentPages, queryPages] = await Promise.all([
+        client.searchAnalytics({ ...common, ...input.periodA, dimensions: ["query"] }),
+        client.searchAnalytics({ ...common, ...input.periodB, dimensions: ["query"] }),
+        client.searchAnalytics({ ...common, ...input.periodA, dimensions: ["page"] }),
+        client.searchAnalytics({ ...common, ...input.periodB, dimensions: ["page"] }),
+        client.searchAnalytics({ ...common, ...input.periodB, dimensions: ["query", "page"] }),
+      ]);
+      return combinedSeoPriorityBrief(
+        keywordOpportunities(queryPages, 20, 12),
+        searchTrendSignals(priorQueries, recentQueries, 25, 5),
+        sitePageOpportunities(priorPages, recentPages, 30, 10),
+      );
+    }),
+  );
+
 }
