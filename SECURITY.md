@@ -1,5 +1,13 @@
 # Security
 
+## Production Google identity: keyless WIF preferred
+
+Read-only Google Search Console access can use `GSC_AUTH_MODE=vercel_oidc` with a Vercel production OIDC token exchanged through Google STS for impersonated short-lived `webmasters.readonly` credentials. `GCP_PROJECT_NUMBER`, pool/provider IDs and the service-account email are **non-secret identifiers**. The token is obtained from the active Vercel request context (`x-vercel-oidc-token`), not a persistent JSON key, source file, log or web response.
+
+The trust must be explicitly scoped by issuer `https://oidc.vercel.com/sanyangpetroleum`, audience `https://vercel.com/sanyangpetroleum` and the exact `owner:sanyangpetroleum:project:gsc-mcp-gateway:environment:production` subject. The Google Workload Identity User binding should grant only this workload identity access to `gsc-mcp-reader`, not all identities in the pool. The official Google STS verifies the OIDC issuer/audience and configured attribute restrictions; tests never assert successful live access without a completed token exchange.
+
+No administrator should disable the Google `iam.disableServiceAccountKeyCreation` constraint to configure this MCP. Do not create or store a key file when federation is available. The separate `gsc_submit_sitemap` writer remains OFF and is **not** authorized by the read-only WIF grant.
+
 ## Default read-only boundary and separately gated Sitemap writes
 
 The default Google scope is `https://www.googleapis.com/auth/webmasters.readonly`. The original seven Search Console tools and five added SEO intelligence tools remain **read-only**. They cannot add/remove properties or users, submit/delete sitemaps, request indexing, edit websites, create PRs or deploy source code.

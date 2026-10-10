@@ -2,6 +2,7 @@ import { GoogleAuth } from "google-auth-library";
 import { requiredEnv } from "@/lib/config";
 import { GoogleApiError, toGoogleApiError } from "./errors";
 import { GSC_SCOPE, type SearchAnalyticsRequest, type SearchAnalyticsResult } from "./types";
+import { federatedGscTokenProvider } from "./wif";
 import { validateInspectionUrl, validateSearchRequest } from "./validation";
 
 type FetchLike = typeof fetch;
@@ -160,6 +161,13 @@ let sharedClient: GscClient | undefined;
 
 export function createGscClientFromEnv(): GscClient {
   if (sharedClient) return sharedClient;
+  if (process.env.GSC_AUTH_MODE === "vercel_oidc") {
+    sharedClient = new GscClient(federatedGscTokenProvider());
+    return sharedClient;
+  }
+  if (process.env.GSC_AUTH_MODE && process.env.GSC_AUTH_MODE !== "service_account_json") {
+    throw new Error("Required server configuration is invalid: GSC_AUTH_MODE");
+  }
   let parsed: Record<string, unknown>;
   try {
     const rawJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim();

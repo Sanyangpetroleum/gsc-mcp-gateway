@@ -2,14 +2,33 @@
 
 These are the only administrator steps needed after the code is deployed.
 
-## 1. Google identity
+## 1. Google identity (Vercel Workload Identity Federation preferred)
 
-1. In a dedicated Google Cloud project, enable **Google Search Console API**.
-2. Create a dedicated service account with no Google Cloud project role beyond what account creation requires. Create one JSON key.
-3. In each intended Search Console property, open **Settings → Users and permissions → Add user**. Add the service account's `client_email` as **Full user**, not owner.
-4. Paste the complete JSON file into the encrypted `GOOGLE_SERVICE_ACCOUNT_JSON` deployment variable. `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` is supported only as an alternative for systems that cannot store multiline JSON. Delete the local downloaded copy after successful validation.
+**Production recommendation: keyless OIDC federation. Never disable an organization policy that blocks creation of service-account keys.** Google Search Console API must be enabled in the intended GCP project.
 
-The service account does not gain Search Console data from an IAM role; the explicit Search Console property grant is the important permission.
+For the existing `SanyangOS` / Vercel `gsc-mcp-gateway` deployment:
+1. Keep the dedicated `gsc-mcp-reader` Google service account, without any Google Cloud project-wide roles.
+2. In each Search Console property, add `gsc-mcp-reader@sanyangos.iam.gserviceaccount.com` as a **Full user**. This is separate from GCP IAM.
+3. Create Google Workload Identity Pool `vercel-gsc` with an OIDC provider. Confirm the actual provider ID from Google Cloud (do not confuse it with the display name). Configure issuer `https://oidc.vercel.com/sanyangpetroleum` and allowed audience `https://vercel.com/sanyangpetroleum`.
+4. Map `google.subject = assertion.sub`. Set a restrictive provider attribute condition to allow only the production MCP project based on **actual verified Vercel claim names**; the condition should be checked against a live token, not guessed from a screenshot. Exact subject: `owner:sanyangpetroleum:project:gsc-mcp-gateway:environment:production`.
+5. Grant that **exact subject** the `roles/iam.workloadIdentityUser` permission on the specific `gsc-mcp-reader` service account using Google Cloud's workload-identity Grant access screen. Avoid granting the whole pool access.
+6. Enable the **IAM Service Account Credentials API** (iamcredentials.googleapis.com) needed for impersonation, without introducing a service-account JSON private key.
+7. Confirm Vercel Project → Settings → Security → OIDC issuer mode is Team and its displayed issuer, audience and subject match the above.
+8. Configure only these non-secret Vercel production environment variables:
+
+| Variable | Value |
+|---|---|
+| `GSC_AUTH_MODE` | `vercel_oidc` |
+| `GCP_PROJECT_NUMBER` | Numeric Google Cloud project number (from IAM & Admin → Settings; NOT the project ID) |
+| `GCP_WORKLOAD_IDENTITY_POOL_ID` | `vercel-gsc` |
+| `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | Actual provider ID confirmed in Google Cloud |
+| `GCP_SERVICE_ACCOUNT_EMAIL` | `gsc-mcp-reader@sanyangos.iam.gserviceaccount.com` |
+
+The MCP reads the short-lived `x-vercel-oidc-token` from the Vercel function request context and exchanges it through Google's official STS + Service Account Credentials APIs. Do **not** create a Google JSON key or upload the workload credential configuration file.
+
+**Legacy fallback:** `GSC_AUTH_MODE=service_account_json` (or omitted) continues to support existing deployments with an already-approved JSON service account credential. It is NOT a reason to weaken `iam.disableServiceAccountKeyCreation`.
+
+References: https://vercel.com/docs/oidc/gcp and https://cloud.google.com/iam/docs/workload-identity-federation-with-other-providers .
 
 ## 2. Gateway OAuth state and secrets
 
@@ -24,6 +43,8 @@ Provision one Upstash Redis database in the same Vercel account/region. Store th
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST secret |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Complete service-account JSON, stored encrypted |
 | `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` | Optional base64 alternative; do not set both |
+
+**Vercel Marketplace Upstash compatibility:** The Free Upstash for Redis integration can inject `KV_REST_API_URL` and `KV_REST_API_TOKEN` instead of the original `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` keys. The gateway accepts either complete REST credential pair, with the manually named Upstash pair taking priority when present. Do not reveal or copy Redis tokens into chat or duplicate secrets manually; use the existing encrypted Marketplace connection.
 
 Do not set `ALLOW_IN_MEMORY_OAUTH` on a remote deployment.
 

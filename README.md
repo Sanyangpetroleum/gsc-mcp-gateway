@@ -15,7 +15,7 @@ Search Console integrations often mix provider credentials, local token files, b
 
 **v0.1.0 — initial open-source release candidate.**
 
-The implementation, documentation, mocked tests, and CI workflow are present. A live deployment still requires operator-provided deployment secrets and explicit Search Console property access for the service-account email.
+The implementation, documentation, mocked tests, and CI workflow are present. A live deployment still requires Google identity federation (preferred), Google Search Console property access, and durable OAuth storage. See [SETUP.md](SETUP.md).
 
 No public adoption, download, or performance claims are made for this initial release.
 
