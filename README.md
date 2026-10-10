@@ -1,6 +1,6 @@
-# GSC MCP Gateway
+# GSC SEO Intelligence MCP Gateway
 
-A reusable, read-only Google Search Console data service exposed through standard remote MCP. One backend can serve ChatGPT, Codex, Claude, and other OAuth-capable MCP clients without exposing Google credentials to those clients.
+A reusable, **read-only by default** Google Search Console SEO intelligence service exposed through standard remote MCP. It provides evidence-based keyword, page and trend recommendations across accessible properties, with a separately gated optional Sitemap submission tool. One backend can serve ChatGPT, Codex, Claude, and other OAuth-capable MCP clients without exposing Google credentials to those clients.
 
 ## Why this project exists
 
@@ -9,7 +9,7 @@ Search Console integrations often mix provider credentials, local token files, b
 - MCP clients authenticate to the gateway;
 - the gateway authenticates to Google Search Console;
 - Google credentials never need to be distributed to individual AI clients;
-- the Google scope and tool surface are read-only.
+- the original Google credential and default tool surface remain read-only; an optional Sitemap write capability requires a separate Google identity, OAuth scope, consent password, exact property allowlist and explicit activation.
 
 ## Status
 
@@ -30,12 +30,17 @@ No public adoption, download, or performance claims are made for this initial re
 | `gsc_url_inspection` | Read indexed URL Inspection results |
 | `gsc_list_sitemaps` | List sitemaps |
 | `gsc_period_comparison` | Compare Search Analytics periods |
+| `gsc_keyword_opportunities` | Evidence-based query/page keyword opportunities and buyer intent |
+| `gsc_search_trend_signals` | Rising/falling own-property search impression signals |
+| `gsc_site_opportunities` | Existing page improvement priorities using two periods |
+| `gsc_page_editorial_brief` | Page-specific query, performance and indexed-version recommendations |
+| `gsc_submit_sitemap` (opt-in only) | Submit an exact allowlisted XML Sitemap using a separate write Google identity and OAuth scope |
 
-Every tool is annotated read-only. The gateway contains no property, user, sitemap, indexing, content, repository, or deployment mutation capability.
+The eleven default tools are read-only. The optional, disabled-by-default `gsc_submit_sitemap` has a separate privileged boundary and cannot request indexing, mutate users/properties/content, or deploy anything. No live global Google Trends, search volumes or competitor SERP data are implied. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md).
 
 ## Security model
 
-- Google access uses `https://www.googleapis.com/auth/webmasters.readonly` only.
+- Default Google access uses `https://www.googleapis.com/auth/webmasters.readonly` only. Optional Sitemap-only submission uses a **distinct** service account, `webmasters` scope and independent authorization, disabled by default.
 - Anonymous MCP requests are rejected.
 - PKCE S256 is required for authorization.
 - Authorization codes are short-lived and one-time use.
