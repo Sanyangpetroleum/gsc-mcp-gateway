@@ -1,5 +1,6 @@
 import { publicBaseUrl, requiredEnv } from "@/lib/config";
 import { oauthStore } from "./store";
+import { MCP_SITEMAP_WRITE_SCOPE, sitemapWriteConfigured } from "@/lib/gsc/sitemap-write";
 import {
   MCP_SCOPE,
   OFFLINE_SCOPE,
@@ -41,7 +42,7 @@ export async function validateAuthorizationQuery(
   const expectedResource = `${publicBaseUrl(request)}/mcp`;
   if (resource !== expectedResource) throw new Error("The exact MCP resource parameter is required");
   const requestedScopes = (params.get("scope") ?? MCP_SCOPE).split(/\s+/).filter(Boolean);
-  const allowed = new Set([MCP_SCOPE, OFFLINE_SCOPE]);
+  const allowed = new Set([MCP_SCOPE, OFFLINE_SCOPE, ...(sitemapWriteConfigured() ? [MCP_SITEMAP_WRITE_SCOPE] : [])]);
   if (!requestedScopes.includes(MCP_SCOPE) || requestedScopes.some((scope) => !allowed.has(scope))) {
     throw new Error("Unsupported OAuth scope");
   }
@@ -60,10 +61,14 @@ export async function approveAuthorization(
   password: string | undefined,
   request: Request,
 ) {
-  if (!safeSecretEquals(password, requiredEnv("MCP_ADMIN_PASSWORD"))) {
+  const payload = await verifyAuthorizationRequest(formToken, request);
+  const requestedScopes = Array.isArray(payload.scopes) ? payload.scopes.map(String) : [];
+  const writeRequested = requestedScopes.includes(MCP_SITEMAP_WRITE_SCOPE);
+  if (writeRequested && !sitemapWriteConfigured()) throw new Error("Sitemap write is disabled");
+  const requiredPassword = writeRequested ? "MCP_WRITE_ADMIN_PASSWORD" : "MCP_ADMIN_PASSWORD";
+  if (!safeSecretEquals(password, requiredEnv(requiredPassword))) {
     throw new Error("Access denied");
   }
-  const payload = await verifyAuthorizationRequest(formToken, request);
   const clientId = String(payload.clientId ?? "");
   const redirectUri = String(payload.redirectUri ?? "");
   const state = String(payload.state ?? "");
