@@ -4,7 +4,7 @@ Status: **source-only implementation**, production activation not implied. Reuse
 
 ## What an AI client can do immediately after reviewed deployment
 
-All four additional tools are **read-only**; they require only existing `gsc.read` gateway OAuth and `webmasters.readonly` Google service-account scope.
+All five additional tools are **read-only**; they require only existing `gsc.read` gateway OAuth and `webmasters.readonly` Google service-account scope.
 
 | MCP tool | Bounded inputs / real output |
 | --- | --- |
@@ -12,6 +12,7 @@ All four additional tools are **read-only**; they require only existing `gsc.rea
 | `gsc_search_trend_signals` | Compare two non-overlapping equally long *finalized* GSC periods; rising/falling/newly-observed own-property query impressions |
 | `gsc_site_opportunities` | Compare own-property page performance across two equal windows, prioritize existing pages for investigation |
 | `gsc_page_editorial_brief` | Page-level performance, top visible queries, optional indexed-version Google URL Inspection and a short editorial checklist |
+| `gsc_seo_priority_brief` | Combined priority brief in one call: page updates, commercial query opportunities, rising own-property terms and a distinct-topic validation hypothesis |
 
 The original seven Search Console tools remain present and unchanged.
 
@@ -20,7 +21,7 @@ Use **`gsc_list_properties` first** and provide an exact property identifier. Pe
 ### Example usage
 
 1. List properties. Select exactly `sc-domain:your-business.example` from the returned properties.
-2. Ask for `gsc_keyword_opportunities` on the latest 28 finalized days, `minImpressions=20` and `maxItems=15`; review commercial search intent and matching existing page.
+2. For one-call recommendations, use `gsc_seo_priority_brief` with equal-length periods (five bounded GSC analytics calls). For detailed research, ask for `gsc_keyword_opportunities` on the latest 28 finalized days, `minImpressions=20` and `maxItems=15`; review commercial search intent and matching existing page.
 3. Ask `gsc_search_trend_signals` for the same exact property and equal-length finalized previous/current periods. State that they represent YOUR site's Search Console impressions, *not* worldwide query growth.
 4. Ask `gsc_site_opportunities` for pages losing clicks or gaining impressions. Investigate, don't automatically rewrite.
 5. Ask `gsc_page_editorial_brief` for one exact matching canonical URL. If Index Inspection reports an issue, verify the live page manually; inspection is indexed-version only.
