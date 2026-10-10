@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis";
+import { redisCredentials } from "./redis-config";
 import type {
   AuthorizationCodeRecord,
   OAuthClientRecord,
@@ -126,10 +127,9 @@ let sharedStore: OAuthStore | undefined;
 
 export function oauthStore(): OAuthStore {
   if (sharedStore) return sharedStore;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (url && token) {
-    sharedStore = new RedisOAuthStore(new Redis({ url, token }));
+  const credentials = redisCredentials();
+  if (credentials) {
+    sharedStore = new RedisOAuthStore(new Redis(credentials));
     return sharedStore;
   }
   if (process.env.NODE_ENV === "test" || process.env.ALLOW_IN_MEMORY_OAUTH === "true") {
