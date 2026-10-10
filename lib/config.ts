@@ -1,3 +1,4 @@
+import { federationConfigured } from "@/lib/gsc/wif";
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
 export function publicBaseUrl(request?: Request): string {
@@ -13,9 +14,10 @@ export function publicBaseUrl(request?: Request): string {
 }
 
 export function configurationStatus() {
-  const googleConfigured = Boolean(
-    process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64,
-  );
+  const googleConfigured =
+    process.env.GSC_AUTH_MODE === "vercel_oidc"
+      ? federationConfigured()
+      : Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64);
   const signingConfigured = Boolean(process.env.MCP_TOKEN_SIGNING_SECRET);
   const adminConfigured = Boolean(process.env.MCP_ADMIN_PASSWORD);
   const redisConfigured = Boolean(
