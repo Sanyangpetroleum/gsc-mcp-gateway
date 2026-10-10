@@ -1,16 +1,18 @@
 # Security
 
-## Read-only boundary
+## Default read-only boundary and separately gated Sitemap writes
 
-The only Google scope is:
+The default Google scope is `https://www.googleapis.com/auth/webmasters.readonly`. The original seven Search Console tools and four added SEO intelligence tools remain **read-only**. They cannot add/remove properties or users, submit/delete sitemaps, request indexing, edit websites, create PRs or deploy source code.
 
-```text
-https://www.googleapis.com/auth/webmasters.readonly
-```
+**Optional one-operation write capability (disabled by default):** `gsc_submit_sitemap` may submit only an XML Sitemap for an exact operator-allowlisted Search Console property. Activation requires `GSC_SITEMAP_WRITE_ENABLED=true`, a distinct service-account JSON credential with Google's `https://www.googleapis.com/auth/webmasters` scope, a nonempty exact `GSC_SITEMAP_WRITE_PROPERTIES` list, and a distinct `MCP_WRITE_ADMIN_PASSWORD`. The writer identity must differ from the read-only Google identity. Both must have access to the property.
 
-The service exposes only list/query/inspect operations. It cannot add or remove properties or users, submit or delete sitemaps, request indexing, modify websites, edit SEO content, create pull requests, or deploy code. The Google Indexing API is not enabled or used.
+The OAuth client must explicitly request `gsc.sitemaps.write` **in addition to** `gsc.read`. Write scope cannot be obtained with the original read authorization password; write consent uses the distinct write password. Tokens without that scope cannot submit even if they connect successfully. Tool execution rechecks feature enablement, exact property, HTTPS XML sitemap path and literal `SUBMIT_SITEMAP` confirmation; no arbitrary URL indexing or body mutation is allowed.
 
-Grant the service account **Full user** access to only the required Search Console properties; do not make it an owner. Search Console permission and the OAuth scope both constrain access.
+Existing read-only clients are not upgraded silently. OAuth refresh tokens retain only their granted scopes. Turning off the flag blocks existing write tokens too. Google API responses are normalized without logging token, client inputs, property or Sitemap URL in server logs. The caller receives an explicit accepted/failed result; 2xx does NOT mean indexed.
+
+Google's ordinary article Request Indexing button has no supported public API; the restricted Google Indexing API is not enabled. Google Trends alpha is not scraped or represented as available; Search Console trend signals are property-specific impressions, not total market demand. Default Security policy continues to prohibit publishing/website mutation.
+
+Grant read and write identities access only to the intended Search Console property, with no Google Cloud IAM roles beyond their needed setup. Do not modify existing `GOOGLE_SERVICE_ACCOUNT_JSON` or widen its scopes. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md) for setup and scope boundaries.
 
 ## Client-to-gateway authentication
 
