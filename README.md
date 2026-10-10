@@ -34,9 +34,10 @@ No public adoption, download, or performance claims are made for this initial re
 | `gsc_search_trend_signals` | Rising/falling own-property search impression signals |
 | `gsc_site_opportunities` | Existing page improvement priorities using two periods |
 | `gsc_page_editorial_brief` | Page-specific query, performance and indexed-version recommendations |
+| `gsc_seo_priority_brief` | One-call top keyword, trend and existing-page action recommendations |
 | `gsc_submit_sitemap` (opt-in only) | Submit an exact allowlisted XML Sitemap using a separate write Google identity and OAuth scope |
 
-The eleven default tools are read-only. The optional, disabled-by-default `gsc_submit_sitemap` has a separate privileged boundary and cannot request indexing, mutate users/properties/content, or deploy anything. No live global Google Trends, search volumes or competitor SERP data are implied. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md).
+The twelve default tools are read-only. The optional, disabled-by-default `gsc_submit_sitemap` has a separate privileged boundary and cannot request indexing, mutate users/properties/content, or deploy anything. No live global Google Trends, search volumes or competitor SERP data are implied. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md).
 
 ## Security model
 
