@@ -1,4 +1,4 @@
-import type { SearchAnalyticsResult, SearchAnalyticsRow } from "@/lib/gsc/types";
+import type { SearchAnalyticsResult } from "@/lib/gsc/types";
 import { compareSearchPeriods } from "@/lib/gsc/comparison";
 import { validateDateRange } from "@/lib/gsc/validation";
 
@@ -179,7 +179,7 @@ export function sitePageOpportunities(
   return {
     property: current.property, periodA: previous.period, periodB: current.period,
     rowsExamined: { previous: previous.rows.length, current: current.rows.length },
-    opportunities: entries.slice(0, maxItems).map(({ heuristicScore, ...rest }) => rest),
+    opportunities: entries.slice(0, maxItems),
     limitations: DATA_LIMITATIONS,
   };
 }
@@ -194,11 +194,6 @@ export function pageEditorialBrief(
   validateComparableWindows(previous.period, current.period);
   const a = previous.rows[0];
   const b = current.rows[0];
-  const trending = searchTrendSignals(
-    { ...previous, dimensions: ["query"], rows: [], rowCount: 0 },
-    { ...current, dimensions: ["query"], rows: [], rowCount: 0 },
-  );
-  void trending; // Page-specific query change requires another historical query request; do not infer it here.
   const topQueries = queries.rows
     .filter((r) => r.dimensions.query)
     .sort((left, right) => right.impressions - left.impressions)
