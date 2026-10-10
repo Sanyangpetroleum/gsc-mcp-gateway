@@ -14,11 +14,42 @@ function escapeHtml(value: string) {
   });
 }
 
+/**
+ * Chromium checks form-action over the entire form submission redirect chain.
+ * The POST /oauth/authorize success response is a 302 to the OAuth client's
+ * registered redirect_uri; 'self' alone blocks that navigation in Chrome/Edge.
+ *
+ * Callers must pass ONLY a URI already validated against the registered OAuth
+ * client (on GET) or a server-signed request and active registration (on POST).
+ * Permit its origin only on this consent page. Keep all other CSP directives
+ * and the POST target restricted to 'self'.
+ */
+function authorizationPageCsp(registeredRedirectUri?: string): string {
+  let allowedCallbackOrigin: string | undefined;
+  if (registeredRedirectUri) {
+    try {
+      const redirect = new URL(registeredRedirectUri);
+      const local = ["localhost", "127.0.0.1", "[::1]"].includes(redirect.hostname);
+      if (redirect.protocol === "https:" || (redirect.protocol === "http:" && local)) {
+        allowedCallbackOrigin = redirect.origin;
+      }
+    } catch {
+      // Invalid callback URIs do not weaken the default policy.
+    }
+  }
+  const formAction = allowedCallbackOrigin
+    ? `form-action 'self' ${allowedCallbackOrigin}`
+    : "form-action 'self'";
+  return `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; ${formAction}`;
+}
+
 export function authorizationPage(input: {
   formToken: string;
   clientName: string;
   scopes: string[];
   error?: string;
+  /** Redirect URI verified against the OAuth client registration. */
+  registeredRedirectUri?: string;
 }) {
   const error = input.error
     ? `<p role="alert" style="color:#a40000">${escapeHtml(input.error)}</p>`
@@ -47,6 +78,10 @@ ${error}
 </form></main></body></html>`;
   return new Response(html, {
     status: input.error ? 401 : 200,
-    headers: { "Content-Type": "text/html; charset=utf-8", ...noStoreHeaders },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      ...noStoreHeaders,
+      "Content-Security-Policy": authorizationPageCsp(input.registeredRedirectUri),
+    },
   });
 }
