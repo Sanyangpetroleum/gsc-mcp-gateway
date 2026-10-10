@@ -44,6 +44,8 @@ Provision one Upstash Redis database in the same Vercel account/region. Store th
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Complete service-account JSON, stored encrypted |
 | `GOOGLE_SERVICE_ACCOUNT_JSON_BASE64` | Optional base64 alternative; do not set both |
 
+**Vercel Marketplace Upstash compatibility:** The Free Upstash for Redis integration can inject `KV_REST_API_URL` and `KV_REST_API_TOKEN` instead of the original `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` keys. The gateway accepts either complete REST credential pair, with the manually named Upstash pair taking priority when present. Do not reveal or copy Redis tokens into chat or duplicate secrets manually; use the existing encrypted Marketplace connection.
+
 Do not set `ALLOW_IN_MEMORY_OAUTH` on a remote deployment.
 
 ## 3. Deploy and verify
