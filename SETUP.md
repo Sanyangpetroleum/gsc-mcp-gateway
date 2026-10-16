@@ -69,8 +69,23 @@ Google currently documents Search Analytics per-site and per-user limits of 1,20
 
 ## Optional Sitemap write activation (not required for SEO analytics)
 
-This requires **separate owner approval** after the read-only gateway is healthy; do not re-use or upgrade its read credentials. Provision a second Google Cloud service account with Search Console API access, explicitly grant it the intended Search Console property's Full user permission (not owner), and store its JSON in the encrypted server variable `GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON`.
+**Not yet activated. Requires explicit owner approval for IAM, GSC permissions, production configuration and deployment.** The live gateway already uses `GSC_AUTH_MODE=vercel_oidc`; do not reintroduce a long-lived Google private key or widen the existing reader account's scope.
 
-Set `GSC_SITEMAP_WRITE_PROPERTIES` to the exact approved GSC property IDs, `MCP_WRITE_ADMIN_PASSWORD` to a strong password different from `MCP_ADMIN_PASSWORD`, and `GSC_SITEMAP_WRITE_ENABLED=true` only after separate approval. The service will register the new `gsc_submit_sitemap` tool on restart. Existing `gsc.read` clients remain read-only; a write-capable client must reconnect and request `gsc.read gsc.sitemaps.write`, authorize with the **separate** write password, and explicitly invoke a confirmed XML Sitemap submission. Do not paste credentials into chats.
+1. Authorize a **second Google service account** (e.g. `gsc-mcp-writer@sanyangos.iam.gserviceaccount.com`) for sitemap writes. Grant it **Full user** in the exact Search Console properties, initially only `sc-domain:sanyangpetroleum.com`. Do not grant Search Console Owner or unrelated GCP roles.
+2. Bind **only the verified Vercel production OIDC subject** of `gsc-mcp-gateway` to this second service account with `roles/iam.workloadIdentityUser`. Use the already trusted WIF pool/provider, but an account-specific binding; do not grant all pool members. The reader remains unchanged.
+3. After verifying the separate identity and approval, configure the following **server-only Vercel production variables** (the write password is secret):
 
-A submitted Sitemap is a crawl discovery hint, not guaranteed indexing or a way to submit arbitrary article URLs. Do not enable or deploy on a code-only request without the separate production/configuration gate.
+| Key | Authorized value |
+|---|---|
+| `GSC_SITEMAP_WRITE_AUTH_MODE` | `vercel_oidc` |
+| `GCP_SITEMAP_WRITE_SERVICE_ACCOUNT_EMAIL` | Exact separately approved writer service-account email |
+| `GSC_SITEMAP_WRITE_PROPERTIES` | Exact property IDs; first `sc-domain:sanyangpetroleum.com` |
+| `MCP_WRITE_ADMIN_PASSWORD` | New, distinct password entered only through secure authorization UI |
+| `GSC_SITEMAP_WRITE_ENABLED` | `true` **only when every preceding gate is approved and verified** |
+
+4. Redeploy only after production permission and deployment approval. Verify read-only tools still work. A write-capable MCP client must reconnect and explicitly request `gsc.read gsc.sitemaps.write`, pass the separate write password and send a specific `gsc_submit_sitemap` invocation with `confirm="SUBMIT_SITEMAP"`.
+5. Use `gsc_sitemap_readiness` to check whether a sitemap was already registered. Existing registered sitemaps can be kept up to date by publishing their updated XML; re-submit when a new sitemap is added or when an explicit refresh is warranted. Use `gsc_url_hygiene_check` to catch invisible pasted URL characters.
+
+**Legacy only:** `GSC_SITEMAP_WRITE_AUTH_MODE=service_account_json` and `GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON` remain supported for already authorized legacy configurations. Do not create a new JSON key if WIF is available or an organization policy prohibits key creation.
+
+Sitemap submission uses only Google's `sitemaps.submit` API. It cannot invoke the Search Console UI's Request Indexing function for ordinary articles. Source changes, test results, and registered-sitemap metadata alone do not constitute an active automated production submission.
