@@ -52,3 +52,9 @@ Sources:
 - https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect
 - https://developers.google.com/search/apis/trends
 - https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
+
+## Optional, event-driven automatic Sitemap notifications (OFF by default)
+
+On approved activation, Sanyang's existing Cloudflare GitHub Actions workflow signals this same gateway after a successful production deployment **only when a Sitemap source file changed**. The gateway independently verifies signed GitHub OIDC provenance and the exact pre-approved `sc-domain:sanyangpetroleum.com` / `https://sanyangpetroleum.com/sitemap.xml` pair, then uses its separately authorized keyless Sitemap writer. No additional Google indexing service, scheduler, SaaS scraper or paid API is introduced.
+
+The default remains read-only. Source files and successful CI tests are not authorization or activation. `IndexNow` continues to run separately and is not evidence of Google index inclusion.
