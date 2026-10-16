@@ -61,3 +61,9 @@ Logs contain only tool or protocol method, UTC timestamp, success/failure, laten
 - The shared operator password authorizes every connected MCP client; it is not a multi-tenant policy system.
 - Application rate limits reduce abuse but do not replace provider firewall controls or deployment-account MFA.
 - Revoking a client currently means rotating the operator password and/or token signing key; there is no client administration console.
+
+## Restricted post-deployment GSC submission (disabled by default)
+
+The optional `POST /api/sitemap-sync` handler is available only when `GSC_SITEMAP_AUTO_SUBMIT_ENABLED=true` **and** the separately permissioned Sitemap writer is enabled. It checks a signed GitHub Actions OIDC JWT via the issuer's JWKS, exact audience, repository name **and immutable ID**, exact main-branch push ref, and exact `cloudflare-production.yml` workflow reference. It accepts no property, URL or Google credential from the HTTP caller: both property and Sitemap URL are fixed in the gateway's server-only allowlist.
+
+The website release job requests a short-lived GitHub OIDC JWT only after an accepted Cloudflare deploy and a Sitemap source change. It does not receive a Google service-account key, Google OAuth token or privileged MCP session. Logs include only coarse success/failure, never tokens or URL arguments. The path must not be enabled without Founder consent and separate security review.
