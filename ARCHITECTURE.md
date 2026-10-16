@@ -30,6 +30,10 @@ The gateway caps a normal analytics call at 5,000 rows and a comparison at 1,000
 
 The original gateway and seven Google read-only primitives are retained. Five deterministic analytical tools in `lib/mcp/seo-tools.ts` reuse Search Analytics and URL Inspection. Each result carries period, exact property, top-row/truncation cautions and editorial next steps. No extra tokens, paid APIs, background workers, client Google credentials, Google Trends API or external data scraping.
 
-`lib/gsc/sitemap-write.ts` is a separately permissioned optional operation inside the same MCP handler. The default tools and `GOOGLE_SERVICE_ACCOUNT_JSON` remain strictly read-only; the writer has a distinct Google account with `webmasters` scope, explicit `gsc.sitemaps.write` client OAuth scope, a separate write-password consent flow, exact property allowlist and disable-on-missing-config behavior. It is not a general Google write or URL indexing endpoint.
+`lib/gsc/sitemap-write.ts` is a separately permissioned optional operation inside the same MCP handler. The default tools and `GOOGLE_SERVICE_ACCOUNT_JSON` remain strictly read-only; the writer has a distinct Google account with `webmasters` scope (prefer keyless Vercel OIDC), explicit `gsc.sitemaps.write` client OAuth scope, a separate write-password consent flow, exact property allowlist and disable-on-missing-config behavior. It is not a general Google write or URL indexing endpoint.
 
 Source changes alone do not activate write permissions, deploy anything, or enroll properties. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md) and [SECURITY.md](SECURITY.md).
+
+## GSC V2 compatibility
+
+The existing Vercel OIDC federation can mint tokens for a distinct Sitemap writer service account without widening the reader's scope or introducing a long-lived Google private key. The new read-only sitemap readiness and copied-URL hygiene tools do not require any Google write permission. Sitemap writes remain disabled until the dedicated owner approval and exact-property IAM/OAuth gates are completed.
