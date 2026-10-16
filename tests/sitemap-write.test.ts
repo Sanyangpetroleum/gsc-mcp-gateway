@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  GscSitemapWriter, MCP_SITEMAP_WRITE_SCOPE,
+  GscSitemapWriter, MCP_SITEMAP_WRITE_SCOPE, createSitemapWriterFromEnv,
   allowedSitemapProperties, sitemapWriteConfigured, validateSitemapSubmission,
 } from "@/lib/gsc/sitemap-write";
 import { approveAuthorization, createAuthorizationFormToken, validateAuthorizationQuery } from "@/lib/oauth/authorize";
@@ -22,6 +22,13 @@ afterEach(() => {
   delete process.env.GSC_SITEMAP_WRITE_PROPERTIES;
   delete process.env.GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON;
   delete process.env.MCP_WRITE_ADMIN_PASSWORD;
+  delete process.env.GSC_SITEMAP_WRITE_AUTH_MODE;
+  delete process.env.GCP_SITEMAP_WRITE_SERVICE_ACCOUNT_EMAIL;
+  delete process.env.GSC_AUTH_MODE;
+  delete process.env.GCP_PROJECT_NUMBER;
+  delete process.env.GCP_WORKLOAD_IDENTITY_POOL_ID;
+  delete process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID;
+  delete process.env.GCP_SERVICE_ACCOUNT_EMAIL;
 });
 
 describe("separate Sitemap write capability", () => {
@@ -87,4 +94,32 @@ describe("separate Sitemap write capability", () => {
     await expect(validateAuthorizationQuery(query, request)).rejects.toThrow("scope");
     await expect(approveAuthorization(token, env.MCP_WRITE_ADMIN_PASSWORD, request)).rejects.toThrow("disabled");
   });
+  it("supports a separately impersonated keyless Sitemap writer on an existing read-only Vercel gateway", () => {
+    const keyless = {
+      GSC_AUTH_MODE: "vercel_oidc",
+      GCP_PROJECT_NUMBER: "123456789012",
+      GCP_WORKLOAD_IDENTITY_POOL_ID: "vercel-gsc",
+      GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID: "vercel-gsc-production",
+      GCP_SERVICE_ACCOUNT_EMAIL: "gsc-mcp-reader@example-project.iam.gserviceaccount.com",
+      GSC_SITEMAP_WRITE_AUTH_MODE: "vercel_oidc",
+      GCP_SITEMAP_WRITE_SERVICE_ACCOUNT_EMAIL: "gsc-mcp-writer@example-project.iam.gserviceaccount.com",
+      GSC_SITEMAP_WRITE_ENABLED: "true",
+      GSC_SITEMAP_WRITE_PROPERTIES: property,
+      MCP_ADMIN_PASSWORD: "read-only-password",
+      MCP_WRITE_ADMIN_PASSWORD: "distinct-writer-password",
+    };
+    expect(sitemapWriteConfigured(keyless)).toBe(true);
+    expect(sitemapWriteConfigured({
+      ...keyless, GCP_SITEMAP_WRITE_SERVICE_ACCOUNT_EMAIL: keyless.GCP_SERVICE_ACCOUNT_EMAIL,
+    })).toBe(false);
+    expect(sitemapWriteConfigured({ ...keyless, GSC_SITEMAP_WRITE_ENABLED: "false" })).toBe(false);
+    expect(sitemapWriteConfigured({ ...keyless, GSC_SITEMAP_WRITE_PROPERTIES: "" })).toBe(false);
+    expect(sitemapWriteConfigured({ ...keyless, MCP_WRITE_ADMIN_PASSWORD: keyless.MCP_ADMIN_PASSWORD })).toBe(false);
+    expect(sitemapWriteConfigured({ ...keyless, GCP_SITEMAP_WRITE_SERVICE_ACCOUNT_EMAIL: "" })).toBe(false);
+    expect(sitemapWriteConfigured({ ...keyless, GSC_AUTH_MODE: "service_account_json" })).toBe(false);
+    Object.assign(process.env, keyless);
+    expect(createSitemapWriterFromEnv()).toBeInstanceOf(GscSitemapWriter);
+  });
+
+
 });
