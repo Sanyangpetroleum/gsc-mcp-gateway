@@ -3,7 +3,7 @@
  * Detects invisible Unicode that can silently turn an article slug into a 404.
  */
 const INVISIBLE = /[\u00ad\u034f\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/gu;
-const INVISIBLE_ESCAPES = /%(?:C2%AD|CD%8F|D8%9C|E1%A0%8E|E2%80%8[B-F]|E2%80%AA|E2%80%AB|E2%80%AC|E2%80%AD|E2%80%AE|E2%81%[A-F0-9]|EF%BB%BF)/gi;
+const INVISIBLE_ESCAPES = /%(?:C2%AD|CD%8F|D8%9C|E1%A0%8E|E2%80%8[B-F]|E2%80%AA|E2%80%AB|E2%80%AC|E2%80%AD|E2%80%AE|E2%81%A[0-9A-F]|EF%BB%BF)/gi;
 
 export function urlHygieneReport(url: string) {
   const parsed = new URL(url);
