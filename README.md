@@ -1,6 +1,6 @@
 # GSC SEO Intelligence MCP Gateway
 
-A reusable, **read-only by default** Google Search Console SEO intelligence service exposed through standard remote MCP. It provides evidence-based keyword, page and trend recommendations across accessible properties, with a separately gated optional Sitemap submission tool. One backend can serve ChatGPT, Codex, Claude, and other OAuth-capable MCP clients without exposing Google credentials to those clients.
+A reusable, **read-only by default** Google Search Console SEO intelligence service exposed through standard remote MCP. It provides evidence-based keyword, page and trend recommendations across accessible properties, with a separately gated optional Sitemap submission tool, with keyless Google writer support. One backend can serve ChatGPT, Codex, Claude, and other OAuth-capable MCP clients without exposing Google credentials to those clients.
 
 ## Why this project exists
 
@@ -29,6 +29,8 @@ No public adoption, download, or performance claims are made for this initial re
 | `gsc_page_performance` | Analyze page-level performance |
 | `gsc_url_inspection` | Read indexed URL Inspection results |
 | `gsc_list_sitemaps` | List sitemaps |
+| `gsc_sitemap_readiness` | Inspect exact sitemap registration, last submission/download, and writer readiness (read-only) |
+| `gsc_url_hygiene_check` | Detect invisible URL characters such as U+2060 before Google inspection (read-only) |
 | `gsc_period_comparison` | Compare Search Analytics periods |
 | `gsc_keyword_opportunities` | Evidence-based query/page keyword opportunities and buyer intent |
 | `gsc_search_trend_signals` | Rising/falling own-property search impression signals |
@@ -37,7 +39,7 @@ No public adoption, download, or performance claims are made for this initial re
 | `gsc_seo_priority_brief` | One-call top keyword, trend and existing-page action recommendations |
 | `gsc_submit_sitemap` (opt-in only) | Submit an exact allowlisted XML Sitemap using a separate write Google identity and OAuth scope |
 
-The twelve default tools are read-only. The optional, disabled-by-default `gsc_submit_sitemap` has a separate privileged boundary and cannot request indexing, mutate users/properties/content, or deploy anything. No live global Google Trends, search volumes or competitor SERP data are implied. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md).
+The fourteen default tools are read-only. The optional, disabled-by-default `gsc_submit_sitemap` has a separate privileged boundary and cannot request indexing, mutate users/properties/content, or deploy anything. No live global Google Trends, search volumes or competitor SERP data are implied. See [SEO_INTELLIGENCE.md](SEO_INTELLIGENCE.md).
 
 ## Security model
 

@@ -69,8 +69,37 @@ Google currently documents Search Analytics per-site and per-user limits of 1,20
 
 ## Optional Sitemap write activation (not required for SEO analytics)
 
-This requires **separate owner approval** after the read-only gateway is healthy; do not re-use or upgrade its read credentials. Provision a second Google Cloud service account with Search Console API access, explicitly grant it the intended Search Console property's Full user permission (not owner), and store its JSON in the encrypted server variable `GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON`.
+**Not yet activated. Requires explicit owner approval for IAM, GSC permissions, production configuration and deployment.** The live gateway already uses `GSC_AUTH_MODE=vercel_oidc`; do not reintroduce a long-lived Google private key or widen the existing reader account's scope.
 
-Set `GSC_SITEMAP_WRITE_PROPERTIES` to the exact approved GSC property IDs, `MCP_WRITE_ADMIN_PASSWORD` to a strong password different from `MCP_ADMIN_PASSWORD`, and `GSC_SITEMAP_WRITE_ENABLED=true` only after separate approval. The service will register the new `gsc_submit_sitemap` tool on restart. Existing `gsc.read` clients remain read-only; a write-capable client must reconnect and request `gsc.read gsc.sitemaps.write`, authorize with the **separate** write password, and explicitly invoke a confirmed XML Sitemap submission. Do not paste credentials into chats.
+1. Authorize a **second Google service account** (e.g. `gsc-mcp-writer@sanyangos.iam.gserviceaccount.com`) for sitemap writes. Grant it **Full user** in the exact Search Console properties, initially only `sc-domain:sanyangpetroleum.com`. Do not grant Search Console Owner or unrelated GCP roles.
+2. Bind **only the verified Vercel production OIDC subject** of `gsc-mcp-gateway` to this second service account with `roles/iam.workloadIdentityUser`. Use the already trusted WIF pool/provider, but an account-specific binding; do not grant all pool members. The reader remains unchanged.
+3. After verifying the separate identity and approval, configure the following **server-only Vercel production variables** (the write password is secret):
 
-A submitted Sitemap is a crawl discovery hint, not guaranteed indexing or a way to submit arbitrary article URLs. Do not enable or deploy on a code-only request without the separate production/configuration gate.
+| Key | Authorized value |
+|---|---|
+| `GSC_SITEMAP_WRITE_AUTH_MODE` | `vercel_oidc` |
+| `GCP_SITEMAP_WRITE_SERVICE_ACCOUNT_EMAIL` | Exact separately approved writer service-account email |
+| `GSC_SITEMAP_WRITE_PROPERTIES` | Exact property IDs; first `sc-domain:sanyangpetroleum.com` |
+| `MCP_WRITE_ADMIN_PASSWORD` | New, distinct password entered only through secure authorization UI |
+| `GSC_SITEMAP_WRITE_ENABLED` | `true` **only when every preceding gate is approved and verified** |
+
+4. Redeploy only after production permission and deployment approval. Verify read-only tools still work. A write-capable MCP client must reconnect and explicitly request `gsc.read gsc.sitemaps.write`, pass the separate write password and send a specific `gsc_submit_sitemap` invocation with `confirm="SUBMIT_SITEMAP"`.
+5. Use `gsc_sitemap_readiness` to check whether a sitemap was already registered. Existing registered sitemaps can be kept up to date by publishing their updated XML; re-submit when a new sitemap is added or when an explicit refresh is warranted. Use `gsc_url_hygiene_check` to catch invisible pasted URL characters.
+
+**Legacy only:** `GSC_SITEMAP_WRITE_AUTH_MODE=service_account_json` and `GSC_SITEMAP_WRITE_SERVICE_ACCOUNT_JSON` remain supported for already authorized legacy configurations. Do not create a new JSON key if WIF is available or an organization policy prohibits key creation.
+
+Sitemap submission uses only Google's `sitemaps.submit` API. It cannot invoke the Search Console UI's Request Indexing function for ordinary articles. Source changes, test results, and registered-sitemap metadata alone do not constitute an active automated production submission.
+
+## Opt-in automatic Sitemap notification after successful Cloudflare deployment
+
+This is source-level work in the **existing gateway** and **existing Sanyang Cloudflare GitHub Actions release**, not another SEO service. The automation remains OFF until the Founder separately approves Google permissions, production deployment and configuration. It never automates ordinary-article `Request Indexing`.
+
+1. Complete the **distinct, keyless Sitemap writer** setup above. Verify a successful manual `gsc_submit_sitemap` with the approved GSC property before enabling automation.
+2. Set these Vercel production variables only after approval: `GSC_SITEMAP_AUTO_SUBMIT_ENABLED=true`, `GSC_AUTOSYNC_GITHUB_REPOSITORY=Sanyangpetroleum/sanyangpetroleum`, `GSC_AUTOSYNC_GITHUB_REPOSITORY_ID=1325430708`, `GSC_AUTOSYNC_GITHUB_WORKFLOW_REF=Sanyangpetroleum/sanyangpetroleum/.github/workflows/cloudflare-production.yml@refs/heads/main`, `GSC_AUTOSYNC_PROPERTY=sc-domain:sanyangpetroleum.com`, `GSC_AUTOSYNC_SITEMAP_URL=https://sanyangpetroleum.com/sitemap.xml`.
+3. On the **website repository**, set GitHub Actions **variable** `GSC_SITEMAP_AUTO_SUBMIT_ENABLED=true` only after reviewing PR #42 and the GSC gateway deployment. This variable carries **no secret**. The `gsc_sitemap_notify` job receives a short-lived signed GitHub Actions OIDC token **only after** the canonical Cloudflare `deploy` job succeeds and the main-branch push changed `public/sitemap.xml` or `scripts/generate-sitemap.ts`. It sends the token only to `https://gsc-mcp-gateway.vercel.app/api/sitemap-sync`.
+4. The gateway verifies issuer `https://token.actions.githubusercontent.com`, audience `https://gsc-mcp-gateway.vercel.app/api/sitemap-sync`, signature, repository, immutable repository ID, push event, `refs/heads/main`, and the exact workflow file. It then checks existing Google read access, exact Sitemap writer property allowlist, and sends one Google `sitemaps.submit` PUT using its separate Google writer identity. The website never receives Google credentials.
+5. Verify one real post-release receipt: deployment job `success`; Github `GSC_SITEMAP_SUBMITTED=ACCEPTED`; Google HTTP 2xx; `gsc_sitemap_readiness` reports updated registration. GSC `lastDownloaded` can lag and indexing is never immediate or guaranteed.
+
+**Disable/recover:** switch either `GSC_SITEMAP_AUTO_SUBMIT_ENABLED` flag to `false` (gateway and GitHub have independent gates). Turning off `GSC_SITEMAP_WRITE_ENABLED` disables both the MCP write tool and machine endpoint. No key rotation or permission broadening is necessary to turn the capability OFF.
+
+**Security review required:** keep the job's `id-token: write` permission scoped only to the opt-in notification job; do not enable it for the broader deployment workflow. The gateway must not accept arbitrary URLs, unauthenticated calls, a PR/preview workflow, other repositories or even a different production workflow.

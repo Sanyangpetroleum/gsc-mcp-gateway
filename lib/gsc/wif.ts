@@ -43,7 +43,14 @@ async function getVercelSubjectToken() {
   return token;
 }
 
-export function federatedGscTokenProvider(
+/**
+ * A scoped Google access token for a single, explicitly named service account.
+ * The reader and optional sitemap writer must use different accounts and scopes.
+ * No persistent JSON key or access token is returned to MCP clients.
+ */
+export function federatedScopedGscTokenProvider(
+  scope: typeof GSC_SCOPE | "https://www.googleapis.com/auth/webmasters",
+  serviceAccountEmail: string,
   supplier: () => Promise<string> = getVercelSubjectToken,
   env: Record<string, string | undefined> = process.env,
 ) {
@@ -51,20 +58,31 @@ export function federatedGscTokenProvider(
     throw new Error("Required server configuration is invalid: GSC_AUTH_MODE");
   }
   const settings = federationConfig(env);
+  if (!serviceAccount.test(serviceAccountEmail)) {
+    throw new Error("Required server configuration is invalid: Sitemap Google identity");
+  }
   const authClient = ExternalAccountClient.fromJSON({
     type: "external_account",
     audience: `//iam.googleapis.com/projects/${settings.projectNumber}/locations/global/workloadIdentityPools/${settings.poolId}/providers/${settings.providerId}`,
     subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
     token_url: "https://sts.googleapis.com/v1/token",
     service_account_impersonation_url:
-      `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${settings.serviceAccountEmail}:generateAccessToken`,
+      `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${serviceAccountEmail}:generateAccessToken`,
     subject_token_supplier: { getSubjectToken: supplier },
   });
   if (!authClient) throw new Error("Required server configuration is invalid: federation client");
-  authClient.scopes = [GSC_SCOPE];
+  authClient.scopes = [scope];
   return async () => {
     const token = (await authClient.getAccessToken()).token;
     if (!token) throw new Error("Google Search Console authentication failed");
     return token;
   };
+}
+
+export function federatedGscTokenProvider(
+  supplier: () => Promise<string> = getVercelSubjectToken,
+  env: Record<string, string | undefined> = process.env,
+) {
+  const readAccount = federationConfig(env).serviceAccountEmail;
+  return federatedScopedGscTokenProvider(GSC_SCOPE, readAccount, supplier, env);
 }
