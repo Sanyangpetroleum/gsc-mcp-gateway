@@ -39,13 +39,7 @@ export function allowedSitemapProperties(env: Record<string, string | undefined>
   return new Set(values);
 }
 
-export function validateSitemapSubmission(
-  property: string, sitemapUrl: string, allowed: ReadonlySet<string>,
-) {
-  validateProperty(property);
-  if (!allowed.has(property)) {
-    throw new GoogleApiError("This Search Console property is not enabled for Sitemap writes", 403, "permission");
-  }
+export function validateSitemapUrlSyntax(property: string, sitemapUrl: string) {
   validateInspectionUrl(property, sitemapUrl);
   const url = new URL(sitemapUrl);
   if (
@@ -56,6 +50,16 @@ export function validateSitemapSubmission(
     throw new Error("Sitemap submission requires an exact HTTPS XML sitemap URL within the authorized property");
   }
   return sitemapUrl;
+}
+
+export function validateSitemapSubmission(
+  property: string, sitemapUrl: string, allowed: ReadonlySet<string>,
+) {
+  validateProperty(property);
+  if (!allowed.has(property)) {
+    throw new GoogleApiError("This Search Console property is not enabled for Sitemap writes", 403, "permission");
+  }
+  return validateSitemapUrlSyntax(property, sitemapUrl);
 }
 
 export class GscSitemapWriter {
