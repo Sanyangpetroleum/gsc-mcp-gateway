@@ -3,6 +3,8 @@ import { z } from "zod";
 import { registerSeoTools } from "@/lib/mcp/seo-tools";
 import { registerSitemapTools } from "@/lib/mcp/sitemap-tools";
 import { createGscClientFromEnv } from "@/lib/gsc/client";
+import { validateInspectionUrl } from "@/lib/gsc/validation";
+import { urlHygieneReport } from "@/lib/gsc/url-hygiene";
 import { compareSearchPeriods } from "@/lib/gsc/comparison";
 import { safeToolError } from "@/lib/gsc/errors";
 import type { SearchAnalyticsResult } from "@/lib/gsc/types";
@@ -215,6 +217,24 @@ export function registerGscTools(server: McpServer) {
       annotations,
     },
     async (input) => observed("gsc_url_inspection", () => createGscClientFromEnv().inspectUrl(input.property, input.url, input.languageCode)),
+  );
+
+  server.registerTool(
+    "gsc_url_hygiene_check",
+    {
+      title: "Check URL cleanliness before Google inspection",
+      description: "READ ONLY. Detect invisible Unicode (including %E2%81%A0 word joiner), unexpected URL encoding and a clean canonical copy suggestion. Does not fetch, request indexing or make a Google URL Inspection call.",
+      inputSchema: z.object({
+        property,
+        url: z.string().url().max(4096),
+      }),
+      annotations,
+    },
+    async (input) => observed("gsc_url_hygiene_check", async () => {
+      validateInspectionUrl(input.property, input.url);
+      await createGscClientFromEnv().assertPropertyAccess(input.property);
+      return { property: input.property, ...urlHygieneReport(input.url) };
+    }),
   );
 
   server.registerTool(
