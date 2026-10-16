@@ -1,5 +1,4 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
-import { publicBaseUrl } from "@/lib/config";
 import { allowedSitemapProperties, sitemapWriteConfigured, validateSitemapSubmission } from "@/lib/gsc/sitemap-write";
 
 const GITHUB_ISSUER = "https://token.actions.githubusercontent.com";
@@ -43,7 +42,7 @@ export function approvedSitemapDeployment(
     return null;
   }
   return {
-    audience: publicBaseUrl() + "/api/sitemap-sync",
+    audience: origin + "/api/sitemap-sync",
     repository, repositoryId, workflowRef, property, sitemapUrl,
   };
 }
